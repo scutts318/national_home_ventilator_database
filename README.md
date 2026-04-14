@@ -1,4 +1,3 @@
-# national_home_ventilator_database
 # UK Home Ventilator Device Database
 
 **A free, open clinical reference tool for UK home mechanical ventilation services**
