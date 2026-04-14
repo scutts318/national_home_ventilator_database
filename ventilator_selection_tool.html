@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Ventilator Selection Tool — Sleep &amp; Ventilation</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#B5D4F4;--blue-dark:#0C447C;
+    --green-light:#EAF3DE;--green-mid:#C0DD97;--green:#3B6D11;--green-dark:#27500A;
+    --amber-light:#FAEEDA;--amber-mid:#FAC775;--amber:#854F0B;--amber-dark:#633806;
+    --red-light:#FCEBEB;--red-mid:#F7C1C1;--red:#A32D2D;--red-dark:#501313;--red-text:#791F1F;
+    --purple-light:#EDE9FE;--purple:#3730A3;--purple-mid:#C4B5FD;
+    --gray-100:#F5F4F1;--gray-200:#E8E7E2;--gray-300:#D3D1C7;--gray-500:#888780;--gray-700:#444441;
+    --text:#1a1a18;--text-sec:#5c5c58;--text-ter:#888780;
+    --border:#d3d1c7;--border-light:#e8e7e2;
+    --rad-md:8px;--rad-lg:12px;--rad-xl:16px;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;font-size:15px;color:var(--text);background:#f0eeea;min-height:100vh;line-height:1.5;}
+  .site-header{background:#fff;border-bottom:1px solid var(--border-light);padding:0 2rem;}
+  .header-inner{max-width:780px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;gap:1rem;}
+  .header-brand{display:flex;align-items:center;gap:12px;}
+  .header-icon{width:36px;height:36px;border-radius:var(--rad-md);background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .header-icon svg{width:20px;height:20px;}
+  .header-title{font-size:15px;font-weight:600;color:var(--text);}
+  .header-sub{font-size:12px;color:var(--text-sec);margin-top:1px;}
+  .header-badge{font-size:11px;font-weight:500;padding:4px 10px;background:var(--blue-light);color:var(--blue-dark);border-radius:20px;border:1px solid var(--blue-mid);white-space:nowrap;}
+  .page-wrap{max-width:780px;margin:0 auto;padding:2rem 1.5rem 4rem;}
+  .prog-wrap{margin-bottom:1.75rem;}
+  .prog-bar{display:flex;gap:4px;margin-bottom:6px;}
+  .ps{height:4px;border-radius:2px;flex:1;background:var(--gray-300);transition:background 0.3s;}
+  .ps.done{background:var(--blue);opacity:0.4;}
+  .ps.active{background:var(--blue);}
+  .prog-meta{display:flex;justify-content:space-between;align-items:center;}
+  .prog-lbl{font-size:12px;color:var(--text-sec);}
+  .prog-pct{font-size:12px;font-weight:500;color:var(--blue);}
+  .step{display:none;}
+  .step.vis{display:block;}
+  .step-card{background:#fff;border:1px solid var(--border-light);border-radius:var(--rad-xl);padding:1.75rem;margin-bottom:1rem;}
+  .step-title{font-size:18px;font-weight:600;color:var(--text);margin-bottom:4px;}
+  .step-sub{font-size:13px;color:var(--text-sec);margin-bottom:1.25rem;line-height:1.45;}
+  .og{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:1.25rem;}
+  .oc{border:1px solid var(--border);border-radius:var(--rad-lg);padding:14px;cursor:pointer;background:#fff;transition:border-color .12s,background .12s;text-align:left;width:100%;}
+  .oc:hover{border-color:var(--blue);background:var(--blue-light);}
+  .oc.sel{border:2px solid var(--blue);background:var(--blue-light);}
+  .oc .oi{font-size:22px;margin-bottom:8px;display:block;}
+  .oc .ot{font-size:14px;font-weight:600;color:var(--text);}
+  .oc .od{font-size:12px;color:var(--text-sec);margin-top:3px;line-height:1.35;}
+  .tg{display:flex;flex-direction:column;gap:7px;margin-bottom:1.25rem;}
+  .tc{border:1px solid var(--border);border-radius:var(--rad-md);padding:12px 14px;cursor:pointer;background:#fff;transition:border-color .12s,background .12s;display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;}
+  .tc:hover{border-color:var(--blue);background:var(--blue-light);}
+  .tc.sel{border:2px solid var(--blue);background:var(--blue-light);}
+  .td{width:16px;height:16px;border-radius:50%;border:2px solid var(--gray-300);flex-shrink:0;margin-top:2px;}
+  .tc.sel .td{background:var(--blue);border-color:var(--blue);}
+  .tt .t1{font-size:14px;font-weight:600;color:var(--text);}
+  .tt .t2{font-size:12px;color:var(--text-sec);margin-top:3px;line-height:1.4;}
+  .nav-row{display:flex;gap:8px;align-items:center;}
+  .btn-back{background:#fff;border:1px solid var(--border);border-radius:var(--rad-md);padding:9px 18px;font-size:14px;cursor:pointer;color:var(--text-sec);}
+  .btn-back:hover{background:var(--gray-100);}
+  .btn-next{background:var(--blue);border:none;border-radius:var(--rad-md);padding:10px 22px;font-size:14px;font-weight:600;cursor:pointer;color:#fff;}
+  .btn-next:hover{background:var(--blue-dark);}
+  .btn-next:disabled{background:var(--gray-300);cursor:not-allowed;}
+  .btn-reset{background:#fff;border:1px solid var(--border);border-radius:var(--rad-md);padding:9px 18px;font-size:14px;cursor:pointer;color:var(--text-sec);margin-left:auto;}
+  .btn-reset:hover{background:var(--gray-100);}
+  .result-section{margin-bottom:1.25rem;}
+  .result-section-label{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem;}
+  .rc{background:#fff;border:1px solid var(--border-light);border-radius:var(--rad-xl);padding:1.25rem 1.35rem;margin-bottom:.75rem;}
+  .rc.primary{border:2px solid var(--blue);}
+  .rc.equal{border:1px solid var(--border);}
+  .badges{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+  .rbadge{display:inline-block;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+  .b-first{background:var(--blue-light);color:var(--blue-dark);border:1px solid var(--blue-mid);}
+  .b-eq{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--border);}
+  .b-pref{background:var(--blue-light);color:var(--blue-dark);border:1px solid var(--blue-mid);}
+  .b-phaseout{background:var(--amber-light);color:var(--amber-dark);border:1px solid var(--amber-mid);}
+  .b-life{background:var(--purple-light);color:var(--purple);border:1px solid var(--purple-mid);}
+  .b-home{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--border);}
+  .b-cost1{background:var(--green-light);color:var(--green-dark);border:1px solid var(--green-mid);}
+  .b-cost2{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--border);}
+  .b-cost3{background:var(--amber-light);color:var(--amber-dark);border:1px solid var(--amber-mid);}
+  .rname{font-size:18px;font-weight:700;color:var(--text);margin-bottom:5px;}
+  .rpref{font-size:12px;color:var(--text-sec);margin-bottom:8px;font-style:italic;}
+  .rnotes{font-size:13px;color:var(--text-sec);line-height:1.55;margin-bottom:12px;}
+  .esc-box{background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:var(--rad-md);padding:11px 13px;margin-bottom:1rem;font-size:13px;color:var(--blue-dark);line-height:1.5;}
+  .esc-box strong{font-weight:600;}
+  .batt-section{background:var(--gray-100);border-radius:var(--rad-md);padding:12px 14px;margin-bottom:12px;}
+  .batt-label{font-size:11px;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+  .batt-rows{display:flex;flex-direction:column;gap:6px;}
+  .batt-row{display:flex;align-items:center;gap:10px;}
+  .batt-name{font-size:12px;color:var(--text-sec);width:145px;flex-shrink:0;}
+  .batt-track{flex:1;height:9px;background:var(--gray-200);border-radius:5px;overflow:hidden;}
+  .batt-fill{height:100%;border-radius:5px;}
+  .batt-fill.i{background:var(--blue);}
+  .batt-fill.e{background:#0F6E56;}
+  .batt-fill.t{background:var(--green);}
+  .batt-hrs{font-size:12px;font-weight:600;color:var(--text);min-width:36px;text-align:right;}
+  .batt-note{font-size:11px;color:var(--text-sec);margin-top:8px;line-height:1.45;}
+  .batt-none{font-size:13px;color:var(--text-sec);font-style:italic;}
+  .cap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin-bottom:12px;}
+  .cap{border-radius:var(--rad-md);padding:9px 11px;}
+  .cap .cl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+  .cap .cv{font-size:13px;font-weight:600;}
+  .cap-ok{background:var(--green-light);color:var(--green-dark);}
+  .cap-ok .cl{color:var(--green);}
+  .cap-warn{background:var(--amber-light);color:var(--amber-dark);}
+  .cap-warn .cl{color:var(--amber);}
+  .cap-neu{background:var(--gray-100);color:var(--text);}
+  .cap-neu .cl{color:var(--text-sec);}
+  .mode-block{background:var(--gray-100);border-radius:var(--rad-md);padding:11px 13px;}
+  .mode-block .mlabel{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
+  .mode-row{display:flex;flex-wrap:wrap;gap:6px;}
+  .mchip{font-size:12px;padding:5px 11px;border-radius:var(--rad-md);font-weight:600;}
+  .mchip.rec{background:var(--blue);color:#fff;}
+  .mchip.alt{background:#fff;border:1px solid var(--border);color:var(--text);}
+  .backup-box{border:2px solid var(--red);border-radius:var(--rad-xl);padding:1.1rem 1.25rem;background:var(--red-light);margin-bottom:1rem;}
+  .backup-box .bb-title{font-size:14px;font-weight:700;color:var(--red-dark);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .bb-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;}
+  .bb-body{font-size:13px;color:var(--red-text);line-height:1.55;}
+  .bb-items{margin-top:8px;display:flex;flex-direction:column;gap:5px;}
+  .bb-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--red-text);}
+  .bb-item-dot{width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px;}
+  .alert{border-radius:var(--rad-md);padding:12px 14px;margin-bottom:.75rem;font-size:13px;line-height:1.55;}
+  .alert strong{font-weight:600;}
+  .alert-warn{border:1px solid var(--amber-mid);background:var(--amber-light);color:var(--amber-dark);}
+  .alert-info{border:1px solid var(--blue-mid);background:var(--blue-light);color:var(--blue-dark);}
+  .alert-ok{border:1px solid var(--green-mid);background:var(--green-light);color:var(--green-dark);}
+  .divider{border:none;border-top:1px solid var(--border-light);margin:1.25rem 0;}
+  .spills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1.25rem;}
+  .spill{font-size:12px;padding:4px 11px;border-radius:20px;background:var(--gray-100);border:1px solid var(--border);color:var(--text-sec);}
+  .spill.hi{background:var(--red-light);border-color:var(--red-mid);color:var(--red);font-weight:600;}
+  .site-footer{text-align:center;padding:2rem 1.5rem;font-size:12px;color:var(--text-ter);line-height:1.6;}
+  .site-footer strong{color:var(--text-sec);}
+  @media(max-width:520px){.page-wrap{padding:1rem 1rem 3rem;}.step-card{padding:1.25rem;}.header-badge{display:none;}.og{grid-template-columns:1fr 1fr;}}
+  .dl-bar{background:#fff;border-top:1px solid var(--border-light);padding:.6rem 2rem;}
+  .dl-bar-inner{max-width:780px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .dl-note{font-size:12px;color:var(--text-sec);}
+  .btn-dl{display:inline-flex;align-items:center;gap:7px;background:var(--gray-100);border:1px solid var(--border);border-radius:var(--rad-md);padding:7px 14px;font-size:13px;font-weight:600;color:var(--text);text-decoration:none;}
+  .btn-dl:hover{background:var(--gray-200);}
+  .btn-dl svg{width:15px;height:15px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="header-icon">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 10 Q4 5 10 5 Q16 5 16 10 Q16 15 10 15 Q4 15 4 10Z" stroke="#fff" stroke-width="1.5" fill="none"/>
+          <path d="M2 10 L5 10 M15 10 L18 10" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="10" cy="10" r="2" fill="#fff"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Home Ventilator Selection</div>
+        <div class="header-sub">Sleep &amp; Ventilation Department</div>
+      </div>
+    </div>
+    <span class="header-badge">Clinical Decision Support</span>
+  </div>
+</header>
+
+<div class="dl-bar"><div class="dl-bar-inner">
+  <span class="dl-note">One-page reference card included — download and print for desk use</span>
+  <a class="btn-dl" href="data:application/pdf;base64,JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNCAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0Jhc2VGb250IC9aYXBmRGluZ2JhdHMgL05hbWUgL0YzIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKNSAwIG9iago8PAovQ29udGVudHMgOSAwIFIgL01lZGlhQm94IFsgMCAwIDU5NS4yNzU2IDg0MS44ODk4IF0gL1BhcmVudCA4IDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago2IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgOCAwIFIgL1R5cGUgL0NhdGFsb2cKPj4KZW5kb2JqCjcgMCBvYmoKPDwKL0F1dGhvciAoU2xlZXAgJiBWZW50aWxhdGlvbiBEZXBhcnRtZW50KSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwMzIwMTU1NDA0KzAwJzAwJykgL0NyZWF0b3IgKFwodW5zcGVjaWZpZWRcKSkgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwMzIwMTU1NDA0KzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKFwodW5zcGVjaWZpZWRcKSkgL1RpdGxlIChIb21lIFZlbnRpbGF0b3IgU2VsZWN0aW9uIFwyMDQgUmVmZXJlbmNlIENhcmQpIC9UcmFwcGVkIC9GYWxzZQo+PgplbmRvYmoKOCAwIG9iago8PAovQ291bnQgMSAvS2lkcyBbIDUgMCBSIF0gL1R5cGUgL1BhZ2VzCj4+CmVuZG9iago5IDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDQ5NjYKPj4Kc3RyZWFtCkdiITtpRDArR2knKW5KMEpQUjo0V0Y9ZUcwPjNkQ0VHVk9xMDI+YlZrSVx0NSRTQmFhSFAzPEBQWy9kTGhnUHJwISd1Ty0uQEVCI2FXcUEnPUNDcSldP15PJiY6dG5zOiI4J2EzQzlAWEJgQmtTS1ZJdUcrcmtZXHJkcDBObixAUSVXZ1w6IXBtQVhhTFYvLkdoW2IqMiI/Q1csOjVGcmJvO0xSSl9Da1ImJllTTGE+bG9uUiwydDsuSTAqLC4rY0ZebExOZWJuJ1dVQUcqUnVmS2tuTz8+LjZBYFo9UXBCLF4tTF49MV1iOjdaM2RQIikjXVdDLEJPZUw3NkNzOTFkYCksLz1JOG1SXzIvTmhwTTRPbSxVLCM/JEBRbV5rIV9gbClyREFRYjxxNjhvNjNTU0E5Pi5fRUszZ0BnRT1Wb2olYktVPSRxMk1BR0NcQGZwaDROaFN0MCdtJy1RPm5PbUJFIydoayxiMEVuJydIUj9gSCY0U1pWI1RgQXM1O0UqVTlkRXJTJiJHXFxQQCReX0crbT05dVxTKmhnOSE3bmEoJzQyS3UyS0VbJnFWIXVoVkpcKTdFZGllTyZSIyZXU2trT2Awbi8qL2VTL2x1PHEvUzdpTl9VLClrOXA7dEtYYHFXb3JxcERKS0NLMFlPO0prJmwwPkxoWm1xRWhrY28wazxIIzhqSWVMRyVQKCZrNXIzV1FWI0EpWyZiMC1DYG1WOUxHS0wzdVA4QVtuI2tQQFRDNF1ARyw+TVc5JF9QNkQtLk5EXVpWQiFvSlMzTixJVDZVWFkyZj81JHA1JDBKNEQ6c0RVPjkyQ2AsOmhVMU0zNUQ6b18rJ2JeLlMocjBvYUM6KTBuSmcra2VMM083XVVscTZ0MF04TkJxLDU/LTB1T05wWWJzWnNndVdHMiVaTioiNWNcZHBJUjEyXF5HJWsrcCddbl1YN2RKa1hVOmlUV3AyWXMhLVxjIkJEM1FDNDEpITA0JGA1LThxUWJDWCxtcio4SVkpZTRbSCVjXEEva2RUSWFbcDQlK1RgRFE0J2tmPUk5aUk8OzBgZXBjNTAlcSxyWyFWPUc/LkJpZyMsQ1FoazRNW0lTO2M5JG8rRzc3UkIqTyFVYydbc2NAMGNvc2A5PygjW0ZydEVnPDxtJGxrQFNMOm4oRiUiaFdBQjlCRTpKPVUqOVVUMzskW1ZVJGY4LC1bJzQhPVU2VUo/O1xHNnQiOldmaFU0RTBiJU1BUGsnUUJmNzp1WVs1REBILWxdcmVIJGQ/ODspV3Fyal9ZJF5kRnBeJ2NUbjVwZy4jL10iaEwwLTBTPERtbU1dR0VQW1ZFMj0oTisxLTdcdU8xaVEnNWcocGArRj5bKiksaCEiITAmOF1uYV5mLWpYRVh1am9ZRzhNPzFZXjdVdFdrT3B1Xig8T207WF1AZ2gqUkVicTxRZTpHTjdbMTI7UjlTY2Q1IzRyVS9YKF0mQnAwOS00ZicvS2ttV1svdWNhTjY2Wld0XCFZamNDN0ZFPjZRWSQ2IldYVHNdPCNwXnA+QmY7UiJsN2ZmMS1dcV5DbVBVZ2s5MStjKyYlPjlKUi8yQzktdFUvS0JqVDwmMkluPk8mZE4iampHKTAoIUsvaTYnJk0la0tkUk1JYS9iNjhgJkE6PlllJ05qPilDQyVdYipRLlMvSzpHWCdlN0RUQGEyUkpDNCltYS9xRSVIPypfR0QyTUFAJ2dfKFk+UC89Sj5QRUgsZ2ZxSkdVPUVSdTs5ITs3T0VKNjdkNXBpST9rJ29mamhbQVFmKXRaUTNWZ0NvYGxHNl8tVj1mdG1HVylVMi5Kc0U6clxGXFZAJy0pNiNHZyc5U1clP0c5KTMxOlIjI0wwRUg+W1pHbiQnYjJka0FLM1UlaUM4MShnO2NqYDJwOElrQyY0TnJwPS8xJzlrTEZvaCg7bGE1Tjk3LUNKUSdRWGJIKUlwXmldXTNkJmlOWmVKOzJISk9cTnJbbzIvLCVFVFFyI0Nrb003KlhtZV8sMjtLOkRKMzssNyJuRkIxU21zQWZhND1JZk1zTzEtZmM1LydNVmpiJGNgRzUqK2k/QEUnIllSJT1BV0JiRDVdRCYkXURkOUYkJCdCTnRCKWBQVVdvbUcmREV1Ki8/KD1sTVAzMi49ai5KZFU5Ty9LN0smSTgzcUA7XU5eN0tPKDtLXHI7a11tIlRaWV9CIjZgTUQ6MjFkQSNNal4rRjw/YmtOJyM0ZyZGN25rU1JvMWI6UWc5QlxnIiRfO1diRlFIYTMtQzlzQ0g3SXNFXCYoJSUsNSMkO1pmVGllNERRK2EoQ2dFWy8mTDskQE5FWEkjKGtYOTUyKDJdW3JCamRuPVEhVkpvWGxKMzEic15ALVBgW1cnMFJOYHBtOEdwLUJeJF8hIlkhPUttOE9kX2pbP287Tk9yOkpSOEFkSVZGJUZOKm0pb0FWVzhiOkRJOXN0cCtDZFUyVT8mT05RVkZiPW9QOmMqdFJVSGMkKGgsIjQiaU0xISc4RSMnKXJYKjohMFFtI1k2ajg0YzdcL0BfMj9jYzRNRF8+MEI2Mz8oRkt0XyRnYGE3Nm8nU2knK1dgSS1AdCUhaGMqaFlSTCVVVkwqUiNPSyxmUENQPSwiI09uaV9CRHBPVUxpR1E9QzNLN2xyWVhSQy8rSWpHcSNAa2diUEpbcj4lNzFPbEotP0pGSFJAXz8lOT9ERSU8Jm9MYmM1cyspIlE3ajBhSnNWazcnJ0M5IlptczwuP2ReVE9cVmozNlU8LypbOUhuMl5tTEE3MFZOOk5LLiojJTpkSGhvPlY5cEJJSUV0KWRmKDRHMV06JTJURWBRWWA0RSRSMFtLSCtPNlBKTWwoLnNmYU5FSCtkYj9DREFrRU1YWWk0L11FKjg1X1JSc11MRERBJk5tMGE8Qmw1TiJkcUVXXSY9NjgqJWdgW1htPWAwKm9kJjdKUUpGLV5CYF4xPGQwT0NSbjYpYXRwZUluZSFrb1VBQSpoal0ocDgtckxKPzhUMVBDVWdiVkQ3clUqXmFmaW5KTHQmNGpKYWBWQDhWS2piMUJFXEFSUWNQXzc+XjdMamNJN08zPENAVEBULzdIMjsjT1tTTmBOaiVLLC5BbmNTTWpCcGI6bEUiMTtXPWFPZF1gMSxAPGhvL2dpTnVyJjppT2BZTl1cYldwKEJpYmMjMSEhMWlWWU5udTU3Wi9bX2BsWT9qRUchaGQtQipMYEdtUyRmMSlza1FJJFFQa2gxPFAkK002c05MLypJWG5zL0hNVmlCMkpaSEwuJmtbXlROZTkjLjtxNmtCUyk9allIMSg1OlhkRStZWF1TJyZEOmJRTSRIMiZxW2QvKVFMNiZCT19KQSF1UGw+WXVWSUpBSV5dWEBPcVFoXCJcTyVpZE9TJW8tPSglS0ZnMTUoTGY5STtpO1UzWVhAN3BiQjRoJEkvdEA2RD5QPzQoaDUuPlY/Q0FsSC8jUS9XdEQ9Ri82Wi9OVWZYQC9sU1xYWy1TITk/O2V0XmFzLEJuTFMjLWtrT2AnbztlLG1QRGFoR2ciUEFJalJVLE40altpIk1za09xQl1zIj0pZGYiP0cxZj5aMGA2b1MxQ183Z24+JWlTX2hVZHM9I2BaY2M3c3Mlb3I5OG4jWk5MJSJRTVZDVFBELCdmOUNFIWE9bjlUKVxWcl1ycXNMdVtNWzY5Sz1UYEo/Q3VxOTc8cmEvXi5sVFFTQXJVMDxSSWhwZD8na3VROk1kTiNjUGBZNi4oS0pCbyZFcTciZEVjOnQtW3JmRmZUSEphOyJrLXRyXiMocm41X1JcamZCb0kzYDdcR0crVWUhZy5pVXQ/QXJcTi5xY2plY0ctb29XTitmKitnTU8pLT5XMCU9b19DZmViUl8zNCs3LV43alAvQGRzVVg1cGlnYktdUV4uNXFFJ1kmQy41RWFAJl9jPEhcPiJYSkkuRlBiLmNTQFYlOkxFXUYoW1YjYzImJy5BJTpuNDxILXIrWy1pXCZITS44I3AxIVxhL2wsKWMiYCgxMFFbOWtLSU1pQGA3c1VfYDhFYyZnY2Q3WyNNdGRLN1tnVydEI0U/V0BfLTtpSGFySSdVdDtvRk1nX1cvLztOXHIhYytebzA6aHBsZGdLSSMkXGEkNDFCbzwrWUlSVU0zXFxQSXA9MSgqUmhBJkJUSE5vYz8+SUkyKURYUkNLTHMzNFw0QSQ4OSdRbDYiKChkRiVMQ2FpMkIyWU5ZblY/XUhkY2ZdT3Q/WFI2PiloTU1KOnFiM1QpMnNpaT86LmZFYzxkcUdITSlnZDZyY1RYMi9NNitsPzJHPkM8ZEYqb1dKMiUmQ1I8R1cuWmNVYVBmX1ssV2VBKF5xNChAV2FubV0jKi8vOWsxUTFoOzs9MSU0PTVOV0dMPzAlUStcQygoa3BGUUJVMXJldCwoYC1qNVs1MSYyZTdAZzlScyhlcUUqNiE+XWpdbTREdS5vS1pkTTxvdEooXGM1YDVROzErI1dSSGYwLCpMM2VvWEIxbWw9Nk1yNmNYLiUzKFNPUl4jcls3Q1VeSjc4cVI7RTplZ2wlbTY8Ll04NnFKK2otWzA5bjdwcmZgWk8rMzcxQy9pcjcsQy02ZEltYkdDYmdpRFFxVXJSZyNtcnEpNlpkO1giXipgbjtsUkslRVJEcShrNHJPQjolJlBJQlpfMnE9QWpDNmZZOWs/OiI2RiJhOCJnSFApTlckOjFtNGYvOkoxMWUzbWZRVWwiTS4vP1FuYGZOLDQ/NVFEMlhHQ2VGX1VkVEkkLV4tOkchWUZrRS1WbVpSKWVyYWhNTWA/L2tZXlpTTmhfKEk3LzsxaEREYThyMGRVNGEhNFJeNClzYD9wbT9XKURbP0IzP20lSzBDLi5WWjo+cEYxa3VeYW1gLyJKajlxZStnPmBEaURYalJQSTFaVVpRNENgNihjdGBrJiFdRS5NPHFpXi1vPFRPVTdsPjV1W2YnbmcmSV0/NTRYNjU+Si5HK3QrUGxoa2s6VDwrIkREXWQvbFs5VTxIay4wZHQ9aG8jTkthY2hiKykqVS5HXXI/QiksKmFhXVRhITs9LkBZVltvWFNcMmo+ZU5BbjFpdUQ1UjtfPC1XQmJqTEctbyRsQEkyNTBaPFdAOmJBW2AjNDdAIl9SLGI6V0MzYSdVcDdwQDNQcnJuXDMwQlAtT2IrY1JpMTRsRDNXaytwKVY1IzMlTlMjRidDL04/PiJMWiReI2kmU2A0RHRQITwlVHI6PSxzZ3BCXXQmVlUsLnBFbmQoRHJeIT1pYzVtIXI3XUovcmkzO0BrYHJmNTliOkpcXEcqTTwpSTQpKlZfY2cjb0FdVGAtN0M7NjBcJmolPyhIUmwmQGdRV1RjJFs3TVBXU2FTWzYpSjtfMlhWSFM5SS05LCwvS0hLZU4mQThXMzM7cjJ1S3NtaXVtdCtqXm0zclVKPiU7cS5OMiknV29CPE8qMWRxM3FTZUFQYzg+XS4/YSgpYyYpOTNmPW1hRj5wLDFbRyd0RT9cKlxXVyU6ZShjIl9SS2dUW0NUT09TIXU8S2JDPUdGYFdHYzAka1REJjtkRHRVXjVqZW9OQFM/cVZnZFprayNrbVc9N3BTbmo8aCxGOnI1TUFJUTUuZDojKSptT3VGXmpVXW8pM0tib19EdW51IT1YJ2ZkJStDazU5OVwqbikiOU86XD8hODAlSGAoZSFWTyU/aSxsPCRaPyVfQi5yUzdUZFFUbD5DcjdLJENaXiFbS2ZOJVwrL1ZVMlA+a3VhKF1lTjw4SGEhdWdDNU1wUVQzaVcxXTwyYzcobDk9OGs3InJmI01vNFY8YkhYckRZSVk5OFRaX1VzOltDajxpMTdFZElvdGFRJHVGPFk0MXNqbC1XNTxFP3NJKywnPTRNR0YzJyUySVJnMj8waFEuXlNBZmVANWdjSF5IXVJqTnAlXml0KkQsSlZuW1o6T0plWytPbShERT9QPl9OLiY1QyRvUjRTclZ0WklQPkQ0cU9UNCtWZC9zYEI3Q2xSPTxHNFxWP0QzPFwyc0cuRTUzc2o7KGBiIiImZmcwMm0sLzwzZExBMEcvOG5gRztOc1AtSnEkKGZaNkU5Y0IrTChaX0xURzM5cFNwLy50Pi9qQkxAOSUqL1FMbSVVJi5iLEZPRTAzS2hwU2hvTCQ+M286T1AvSi5TRTBfSzhgMio4REdjPy1JaFdzY00+YzohSjUnWlQjVjpEOUVfPTVcNFQ1RyRuTmstWE0tcCNeJDNcU1dMXDwkQGdtNWwkMzMpQmdOaF09XyJCTjozO2QpQiwlQHE1PSg8SV8/NVY+R2VxLCwpPkJaN1hGKS5BTVE8aitiWU88LFg7SypcSS9CTjFZXihcKCUxOERUQ0k6aGNbY2hqNyE1MDQzUzQ6KCE/Z21QJmgicCwsIiE9c2trRjMyMk5qbTYsPEB0KzZPaThuNUg7XWohWlY3RWpyRktGMEdCSlxNNllvYUpGOFoqKz9lPUBOQSYqSStoOiJNOThIVHA8czFGMCQiNThiW05BNG5aTWtwSWl0bSZxcTNdUltnRHAqOyQjQGIlazRKNlc7bTUiR1F0Jmlwb143M0kvVVMhfj5lbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCAxMAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwNjEgMDAwMDAgbiAKMDAwMDAwMDExMiAwMDAwMCBuIAowMDAwMDAwMjE5IDAwMDAwIG4gCjAwMDAwMDAzMzEgMDAwMDAgbiAKMDAwMDAwMDQxNCAwMDAwMCBuIAowMDAwMDAwNjE3IDAwMDAwIG4gCjAwMDAwMDA2ODUgMDAwMDAgbiAKMDAwMDAwMTAxNCAwMDAwMCBuIAowMDAwMDAxMDczIDAwMDAwIG4gCnRyYWlsZXIKPDwKL0lEIApbPDAzNDliNDQ2YWZkODI4NWYzNTI5NTM4Nzg5Y2ZhN2Y2PjwwMzQ5YjQ0NmFmZDgyODVmMzUyOTUzODc4OWNmYTdmNj5dCiUgUmVwb3J0TGFiIGdlbmVyYXRlZCBQREYgZG9jdW1lbnQgLS0gZGlnZXN0IChvcGVuc291cmNlKQoKL0luZm8gNyAwIFIKL1Jvb3QgNiAwIFIKL1NpemUgMTAKPj4Kc3RhcnR4cmVmCjYxMzAKJSVFT0YK" download="ventilator_reference_card.pdf">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Download reference card (PDF)
+  </a>
+</div></div>
+<div class="page-wrap">
+  <div class="prog-wrap">
+    <div class="prog-bar">
+      <div class="ps active" id="ps1"></div>
+      <div class="ps" id="ps2"></div>
+      <div class="ps" id="ps3"></div>
+      <div class="ps" id="ps4"></div>
+      <div class="ps" id="ps5"></div>
+      <div class="ps" id="ps6"></div>
+    </div>
+    <div class="prog-meta">
+      <span class="prog-lbl" id="plbl">Step 1 of 6</span>
+      <span class="prog-pct" id="ppct">17%</span>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step vis" id="step1">
+    <div class="step-card">
+      <div class="step-title">Primary diagnosis</div>
+      <div class="step-sub">Select the condition driving chronic respiratory failure</div>
+      <div class="og">
+        <button class="oc" data-val="copd" onclick="sel(1,this)"><span class="oi">🫁</span><div class="ot">COPD</div><div class="od">Hypercapnic type II respiratory failure</div></button>
+        <button class="oc" data-val="nmd" onclick="sel(1,this)"><span class="oi">⚡</span><div class="ot">Neuromuscular disease</div><div class="od">MND, Duchenne, SMA, myopathy</div></button>
+        <button class="oc" data-val="ohs" onclick="sel(1,this)"><span class="oi">⚖️</span><div class="ot">Obesity hypoventilation</div><div class="od">BMI ≥30 with hypercapnia</div></button>
+        <button class="oc" data-val="cwd" onclick="sel(1,this)"><span class="oi">🦴</span><div class="ot">Chest wall disorder</div><div class="od">Kyphoscoliosis, post-thoracoplasty</div></button>
+        <button class="oc" data-val="sci" onclick="sel(1,this)"><span class="oi">🧠</span><div class="ot">Spinal cord injury</div><div class="od">High cervical or thoracic SCI</div></button>
+      </div>
+      <div class="nav-row"><button class="btn-next" id="n1" disabled onclick="goStep(2)">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="step-card">
+      <div class="step-title">Ventilation interface</div>
+      <div class="step-sub">Is this patient invasively or non-invasively ventilated?</div>
+      <div class="tg">
+        <button class="tc" data-val="niv" onclick="sel(2,this)"><div class="td"></div><div class="tt"><div class="t1">Non-invasive ventilation (NIV)</div><div class="t2">Mask interface — full face, nasal, or hybrid</div></div></button>
+        <button class="tc" data-val="inv" onclick="sel(2,this)"><div class="td"></div><div class="tt"><div class="t1">Invasive ventilation</div><div class="t2">Tracheostomy in situ</div></div></button>
+      </div>
+      <div class="nav-row"><button class="btn-back" onclick="goStep(1)">← Back</button><button class="btn-next" id="n2" disabled onclick="goStep(3)">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="step-card">
+      <div class="step-title">Ventilation dependency</div>
+      <div class="step-sub">How many hours per day does the patient require ventilatory support?</div>
+      <div class="tg">
+        <button class="tc" data-val="nocturnal" onclick="sel(3,this)"><div class="td"></div><div class="tt"><div class="t1">Nocturnal only</div><div class="t2">Up to ~10 hours, sleep only</div></div></button>
+        <button class="tc" data-val="extended" onclick="sel(3,this)"><div class="td"></div><div class="tt"><div class="t1">Extended / part-day</div><div class="t2">10–16 hours including daytime use</div></div></button>
+        <button class="tc" data-val="highdep" onclick="sel(3,this)"><div class="td"></div><div class="tt"><div class="t1">High dependency — more than 16 hours</div><div class="t2">Battery device and second backup ventilator required as standard</div></div></button>
+        <button class="tc" data-val="fullday" onclick="sel(3,this)"><div class="td"></div><div class="tt"><div class="t1">Near-continuous or 24-hour</div><div class="t2">Minimal or absent respiratory reserve — battery and backup device mandatory</div></div></button>
+      </div>
+      <div class="nav-row"><button class="btn-back" onclick="goStep(2)">← Back</button><button class="btn-next" id="n3" disabled onclick="goStep(4)">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step" id="step4">
+    <div class="step-card">
+      <div class="step-title">Portability &amp; battery</div>
+      <div class="step-sub">Does this patient require a portable or battery-capable device?</div>
+      <div class="tg">
+        <button class="tc" data-val="port_yes" onclick="sel(4,this)"><div class="td"></div><div class="tt"><div class="t1">Yes — portability required</div><div class="t2">Ambulatory, wheelchair-dependent, frequent transport, or away-from-home daytime use</div></div></button>
+        <button class="tc" data-val="port_no" onclick="sel(4,this)"><div class="td"></div><div class="tt"><div class="t1">No — mains power sufficient</div><div class="t2">Patient predominantly home-based at mains power</div></div></button>
+      </div>
+      <div class="nav-row"><button class="btn-back" onclick="goStep(3)">← Back</button><button class="btn-next" id="n4" disabled onclick="goStep(5)">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step" id="step5">
+    <div class="step-card">
+      <div class="step-title">Variable pressure mode (AVAPs / iVAPS)</div>
+      <div class="step-sub">Does this patient require automatic volume-assured pressure support?</div>
+      <div class="tg">
+        <button class="tc" data-val="avaps_yes" onclick="sel(5,this)"><div class="td"></div><div class="tt"><div class="t1">Yes — AVAPs / iVAPS indicated</div><div class="t2">Variable compliance or resistance, inconsistent tidal volumes, progressive NMD, or OHS with OSA component</div></div></button>
+        <button class="tc" data-val="avaps_no" onclick="sel(5,this)"><div class="td"></div><div class="tt"><div class="t1">No — fixed pressure S/T or PC mode sufficient</div><div class="t2">Stable mechanics, adequate tidal volumes on fixed settings</div></div></button>
+      </div>
+      <div class="nav-row"><button class="btn-back" onclick="goStep(4)">← Back</button><button class="btn-next" id="n5" disabled onclick="goStep(6)">Next →</button></div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step" id="step6">
+    <div class="step-card">
+      <div class="step-title">Mouthpiece ventilation (MPV)</div>
+      <div class="step-sub">Does the patient use or require daytime mouthpiece ventilation?</div>
+      <div class="tg">
+        <button class="tc" data-val="mpv_yes" onclick="sel(6,this)"><div class="td"></div><div class="tt"><div class="t1">Yes — MPV required</div><div class="t2">Daytime support via mouthpiece (e.g. NMD or high SCI unable to tolerate daytime mask)</div></div></button>
+        <button class="tc" data-val="mpv_no" onclick="sel(6,this)"><div class="td"></div><div class="tt"><div class="t1">No — mask or tracheostomy interface only</div><div class="t2">No mouthpiece ventilation planned</div></div></button>
+      </div>
+      <div class="nav-row"><button class="btn-back" onclick="goStep(5)">← Back</button><button class="btn-next" id="n6" disabled onclick="showResult()">View recommendation →</button></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="step" id="stepR">
+    <div id="rcontent"></div>
+    <div class="nav-row" style="margin-top:.5rem;">
+      <button class="btn-back" onclick="goStep(6)">← Back</button>
+      <button class="btn-reset" onclick="resetTool()">↺ Start again</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <strong>Clinical decision support only.</strong><br>
+  Battery runtimes are manufacturer-stated maximums for new, fully charged batteries — actual performance varies with settings, temperature, and battery age.<br>
+  Final device selection requires clinician judgement, full clinical assessment, MDT review, and patient preference.<br>
+  Follow current BTS / ERS guidelines. Last reviewed: March 2026.
+</footer>
+
+<script>
+const S = { diag:null, iface:null, dep:null, port:null, avaps:null, mpv:null };
+
+const VENTS = {
+  lumis100:{
+    name:"ResMed Lumis 100", lifeSupport:false, costTier:1,
+    invasive:false, avaps:false, avaps_name:null, mpv:false, volumeMode:false, portable:false, maxDep:"extended",
+    remote:"builtin", platform:"AirView", platform_ok:true, humidification:"integrated", phaseout:false,
+    battery:{ internal:null, external:null, maxExternal:0, note:"No internal battery — mains power only." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"S/T (PSV)", ohs:"S/T (PSV)", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["PC (a-PCV)","T"],
+    notes:"Default starting device. Fixed-pressure NIV for all diagnoses. Built-in AirView — no modem needed, immediate remote access. Integrated HumidAir humidification. Mains power only."
+  },
+  lumis150:{
+    name:"ResMed Lumis 150", lifeSupport:false, costTier:2,
+    invasive:false, avaps:true, avaps_name:"iVAPS", mpv:false, volumeMode:false, portable:false, maxDep:"fullday",
+    remote:"builtin", platform:"AirView", platform_ok:true, humidification:"integrated", phaseout:false,
+    battery:{ internal:null, external:null, maxExternal:0, note:"No internal battery — mains power only." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"PC (a-PCV)", ohs:"iVAPS", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","PC (a-PCV)","T"],
+    notes:"iVAPS auto-titrating mode. Built-in AirView — no modem needed. Integrated HumidAir humidification. O\u2082 bleed-in via port (no integrated blender). Mains power only."
+  },
+  prisma40:{
+    name:"L\u00f6wenstein Prisma 40", lifeSupport:false, costTier:1,
+    invasive:true, avaps:true, avaps_name:"Target Volume (TV)", mpv:false, volumeMode:false, portable:true, maxDep:"extended",
+    remote:"modem", platform:"prismaTS", platform_ok:true, humidification:"external", phaseout:false,
+    battery:{ internal:10, external:null, maxExternal:0, note:"Internal battery up to 10h. No detachable external battery." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"PC (a-PCV)", ohs:"S/T + TV", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","PC (a-PCV)","T"],
+    notes:"Battery-capable (10h internal). Target Volume (TV) mode. Integrated O\u2082 blender. Remote monitoring via TeleCare modem with prismaTS. No dedicated MPV mode \u2014 escalate to Prisma 50-C if MPV needed."
+  },
+  prisma50c:{
+    name:"L\u00f6wenstein Prisma 50-C", lifeSupport:false, costTier:2,
+    invasive:true, avaps:true, avaps_name:"Target Volume (TV)", mpv:true, volumeMode:false, portable:true, maxDep:"fullday",
+    remote:"modem", platform:"prismaTS", platform_ok:true, humidification:"external", phaseout:false,
+    battery:{ internal:10, external:null, maxExternal:0, note:"Internal battery up to 10h. No detachable external battery." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"PC (a-PCV)", ohs:"S/T + TV", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","PC (a-PCV)","T","MPV-P","MPV-V"],
+    notes:"Battery-capable (10h internal). Target Volume (TV) mode. Integrated O\u2082 blender. MPV in both pressure and volume modes. Remote monitoring via TeleCare modem with prismaTS."
+  },
+  nippy4:{
+    name:"Breas NIPPY 4", lifeSupport:false, costTier:1,
+    invasive:true, avaps:true, avaps_name:"VAPS (TgV)", mpv:true, volumeMode:false, portable:true, maxDep:"extended",
+    remote:"modem", platform:"BreasConnect (IG pending)", platform_ok:false, humidification:"external", phaseout:false,
+    battery:{ internal:2.5, external:6.5, maxExternal:1, note:"2.5h internal + 6.5h click-in battery. Max ~9h total. Remote monitoring not yet accessible \u2014 IG approval pending." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"VAPS / PC (a-PCV)", ohs:"VAPS", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","PC (a-PCV)","T","MPV-P"],
+    notes:"Battery-capable (2.5h internal + 6.5h click-in, max ~9h). VAPS (TgV) mode. MPV (pressure mode). Lightweight and portable \u2014 well suited to wheelchair use. Remote monitoring pending IG approval."
+  },
+  nippy4plus:{
+    name:"Breas NIPPY 4+", lifeSupport:true, costTier:2,
+    invasive:true, avaps:true, avaps_name:"VAPS (TgV)", mpv:true, volumeMode:true, portable:true, maxDep:"fullday",
+    remote:"modem", platform:"BreasConnect (IG pending)", platform_ok:false, humidification:"external", phaseout:false,
+    battery:{ internal:2.5, external:6.5, maxExternal:1, note:"2.5h internal + 6.5h click-in battery. Max ~9h total. Remote monitoring not yet accessible \u2014 IG approval pending." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"VAPS / PC (a-PCV)", ohs:"VAPS", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","PC (a-PCV)","T","MPV-P","VCV","VCV-MPV"],
+    notes:"Life support ventilator. Battery-capable (2.5h internal + 6.5h click-in, max ~9h). VAPS (TgV), MPV (pressure and volume), and volume control (VCV) modes. Portable. Remote monitoring pending IG approval."
+  },
+  luisa:{
+    name:"L\u00f6wenstein Luisa", lifeSupport:true, costTier:3,
+    invasive:true, avaps:false, avaps_name:null, mpv:true, volumeMode:true, portable:true, maxDep:"fullday",
+    remote:"modem", platform:"prismaTS", platform_ok:true, humidification:"external", phaseout:false,
+    battery:{ internal:6, external:6, maxExternal:2, note:"6h internal + up to 2 detachable external batteries at 6h each. Max ~18h total." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"PC (a-PCV)", ohs:"PC (a-PCV)", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","T","A/C","SIMV","Volume"],
+    notes:"Life support ventilator. First choice for high-dependency invasive ventilation. Turbine-driven. Integrated O\u2082 blender. Up to 18h battery with 2 external packs. Active heated humidification essential for tracheostomy. Remote monitoring via prismaTS."
+  },
+  evo:{
+    name:"Philips EVO", lifeSupport:true, costTier:3,
+    invasive:true, avaps:false, avaps_name:null, mpv:true, volumeMode:true, portable:true, maxDep:"fullday",
+    remote:"none", platform:"None", platform_ok:false, humidification:"external", phaseout:true,
+    battery:{ internal:7.5, external:7.5, maxExternal:1, note:"7.5h internal + 7.5h detachable external battery. Max ~15h total. Device is being phased out." },
+    modes_rec:{ copd:"S/T (PSV)", nmd:"PC (a-PCV)", ohs:"PC (a-PCV)", cwd:"PC (a-PCV)", sci:"PC (a-PCV)" },
+    modes_alt:["S/T (PSV)","T","A/C","SIMV","Volume"],
+    notes:"Life support ventilator. Being phased out \u2014 use only where Luisa or NIPPY 4+ cannot meet clinical need. No remote monitoring. Integrated O\u2082 blender. 7.5h internal + 7.5h detachable battery (max ~15h)."
+  }
+};
+
+/* ── Escalation tree ── */
+function escalate() {
+  const { iface, dep, port, avaps, mpv } = S;
+  const highDep  = dep === "highdep" || dep === "fullday";
+  const needsBattery = port === "port_yes" || highDep;
+  const needsAvaps   = avaps === "avaps_yes";
+  const needsMpv     = mpv === "mpv_yes";
+
+  // Invasive + high dependency → life support tier (departmental preference order)
+  if (iface === "inv" && highDep) {
+    return {
+      type:"trache-highdep",
+      reason:"Invasive (tracheostomy) ventilation with high dependency (>16h/day) requires a life support ventilator with battery capability. Options are presented in departmental preference order.",
+      devices:[
+        { key:"luisa",     pref:"1st choice",                    badge:"b-pref" },
+        { key:"nippy4plus",pref:"2nd choice",                    badge:"b-eq"   },
+        { key:"evo",       pref:"3rd choice \u2014 phasing out", badge:"b-phaseout" }
+      ]
+    };
+  }
+
+  // No battery needed
+  if (!needsBattery) {
+    // MPV required — neither Lumis supports MPV, must escalate
+    if (needsMpv && !needsAvaps) {
+      return {
+        type:"equal-pair",
+        reason:"MPV required. Neither Lumis device supports MPV \u2014 escalating to Prisma 50-C or NIPPY 4. No battery required so mains-powered Prisma 50-C is suitable alongside the portable NIPPY 4.",
+        devices:[
+          { key:"prisma50c", label:"Prefer if integrated O\u2082 blender or prismaTS remote monitoring is a priority" },
+          { key:"nippy4",    label:"Prefer if lightweight portable form factor is the priority (e.g. wheelchair use)" }
+        ]
+      };
+    }
+    // MPV + AVAPs required — escalate to Prisma 50-C / NIPPY 4+
+    if (needsMpv && needsAvaps) {
+      return {
+        type:"equal-pair",
+        reason:"MPV and AVAPs required. Neither Lumis device supports MPV \u2014 escalating to Prisma 50-C or NIPPY 4+. Both support AVAPs and MPV. NIPPY 4+ additionally offers VCV and life support certification.",
+        devices:[
+          { key:"prisma50c",  label:"Prefer if integrated O\u2082 blender or prismaTS remote monitoring is a priority" },
+          { key:"nippy4plus", label:"Prefer if VCV mode, life support certification, or lightweight form factor is needed" }
+        ]
+      };
+    }
+    // No AVAPs, no MPV — Lumis 100
+    if (!needsAvaps) {
+      return { type:"single", reason:"No battery, AVAPs, or MPV required. Starting at the default device \u2014 Lumis 100.", device:"lumis100" };
+    }
+    // AVAPs only — Lumis 150
+    return { type:"single", reason:"AVAPs / iVAPS required, no battery or MPV needed. Escalating from Lumis 100 \u2192 Lumis 150 for iVAPS capability.", device:"lumis150" };
+  }
+
+  // Battery needed — Prisma / NIPPY tier
+  if (!needsAvaps && !needsMpv) {
+    return {
+      type:"equal-pair",
+      reason:"Battery required. Escalating from Lumis to the Prisma / NIPPY tier. Both are equally suitable \u2014 choice depends on form factor preference and remote monitoring priority.",
+      devices:[
+        { key:"prisma40", label:"Prefer if remote monitoring (prismaTS) or integrated O\u2082 blender is a priority" },
+        { key:"nippy4",   label:"Prefer if lightweight portable form factor is the priority (e.g. wheelchair use)" }
+      ]
+    };
+  }
+
+  if (needsAvaps && !needsMpv) {
+    return {
+      type:"equal-pair",
+      reason:"Battery and AVAPs required. Both Prisma 40 (Target Volume) and NIPPY 4 (VAPS/TgV) support volume-assured modes and are equal at this level.",
+      devices:[
+        { key:"prisma40", label:"Prefer if remote monitoring (prismaTS) or integrated O\u2082 blender is a priority" },
+        { key:"nippy4",   label:"Prefer if lightweight portable form factor is the priority (e.g. wheelchair use)" }
+      ]
+    };
+  }
+
+  if (needsMpv && !needsAvaps) {
+    return {
+      type:"equal-pair",
+      reason:"Battery and MPV required. Prisma 40 does not support MPV \u2014 escalating to Prisma 50-C. NIPPY 4 also supports MPV and remains an equal alternative.",
+      devices:[
+        { key:"prisma50c", label:"Prefer if integrated O\u2082 blender or prismaTS remote monitoring is a priority" },
+        { key:"nippy4",    label:"Prefer if lightweight portable form factor is the priority (e.g. wheelchair use)" }
+      ]
+    };
+  }
+
+  // AVAPs + MPV both needed → Prisma 50-C or NIPPY 4+
+  // NIPPY 4+ additionally offers VCV and life support certification
+  return {
+    type:"equal-pair",
+    reason:"Battery, AVAPs, and MPV all required. Prisma 50-C and NIPPY 4+ both meet these needs. NIPPY 4+ additionally offers volume control (VCV) mode and life support certification.",
+    devices:[
+      { key:"prisma50c",  label:"Prefer if integrated O\u2082 blender or prismaTS remote monitoring is a priority" },
+      { key:"nippy4plus", label:"Prefer if VCV mode, life support certification, or lightweight form factor is needed" }
+    ]
+  };
+}
+
+/* ── Helpers ── */
+function modeRec(v) {
+  const hasAvaps = S.avaps === "avaps_yes" && v.avaps;
+  let rec = hasAvaps ? (v.avaps_name || v.modes_rec[S.diag]) : v.modes_rec[S.diag];
+  let alts = v.modes_alt.filter(m => m !== rec);
+  return { rec, alts };
+}
+
+function battBar(v) {
+  const b = v.battery; const MAX = 18;
+  if (!b.internal && !b.external) {
+    return `<div class="batt-section"><div class="batt-label">Battery</div><div class="batt-none">No internal battery — mains power only</div><div class="batt-note">${b.note}</div></div>`;
+  }
+  const iP = Math.round(((b.internal||0)/MAX)*100);
+  const eH = (b.external||0)*b.maxExternal;
+  const eP = Math.round((eH/MAX)*100);
+  const tH = (b.internal||0)+eH;
+  const tP = Math.round((tH/MAX)*100);
+  let rows = `<div class="batt-row"><span class="batt-name">Internal battery</span><div class="batt-track"><div class="batt-fill i" style="width:${iP}%"></div></div><span class="batt-hrs">${b.internal}h</span></div>`;
+  if (b.external && b.maxExternal > 0) {
+    rows += `<div class="batt-row"><span class="batt-name">External ${b.maxExternal>1?"batteries (\xd7"+b.maxExternal+")":"battery (\xd71)"}</span><div class="batt-track"><div class="batt-fill e" style="width:${eP}%"></div></div><span class="batt-hrs">+${eH}h</span></div>`;
+    rows += `<div class="batt-row"><span class="batt-name">Max total runtime</span><div class="batt-track"><div class="batt-fill t" style="width:${tP}%"></div></div><span class="batt-hrs">${tH}h</span></div>`;
+  }
+  return `<div class="batt-section"><div class="batt-label">Battery runtime</div><div class="batt-rows">${rows}</div><div class="batt-note">${b.note}</div></div>`;
+}
+
+function renderCard(v, badgeLabel, badgeClass, prefLabel) {
+  const m = modeRec(v);
+  const remC  = v.remote==="builtin" ? "cap-ok" : v.remote==="none" ? "cap-warn" : "cap-neu";
+  const platC = v.platform_ok ? "cap-ok" : "cap-warn";
+  const humiC = S.iface==="inv" ? "cap-warn" : v.humidification==="integrated" ? "cap-ok" : "cap-neu";
+  const costL = ["","Standard cost","Mid cost","Higher cost"];
+  const costC = ["","b-cost1","b-cost2","b-cost3"];
+  const isPrimary = badgeClass==="b-pref" || badgeClass==="b-first";
+  return `<div class="rc ${isPrimary?"primary":"equal"}">
+    <div class="badges">
+      <span class="rbadge ${badgeClass}">${badgeLabel}</span>
+      ${v.phaseout?'<span class="rbadge b-phaseout">Being phased out</span>':""}
+      <span class="rbadge ${v.lifeSupport?"b-life":"b-home"}">${v.lifeSupport?"Life support":"Home ventilator"}</span>
+      <span class="rbadge ${costC[v.costTier]}">${costL[v.costTier]}</span>
+    </div>
+    ${prefLabel?`<div class="rpref">${prefLabel}</div>`:""}
+    <div class="rname">${v.name}</div>
+    <div class="rnotes">${v.notes}</div>
+    ${battBar(v)}
+    <div class="cap-grid">
+      <div class="cap ${v.portable?"cap-ok":"cap-neu"}"><div class="cl">Portable / battery</div><div class="cv">${v.portable?"Yes":"No"}</div></div>
+      <div class="cap ${v.avaps?"cap-ok":"cap-neu"}"><div class="cl">AVAPs / iVAPS</div><div class="cv">${v.avaps?(v.avaps_name||"Supported"):"Not available"}</div></div>
+      <div class="cap ${v.mpv?"cap-ok":"cap-neu"}"><div class="cl">MPV</div><div class="cv">${v.mpv?"Yes":"No"}</div></div>
+      <div class="cap ${v.volumeMode?"cap-ok":"cap-neu"}"><div class="cl">Volume mode (VCV)</div><div class="cv">${v.volumeMode?"Yes":"No"}</div></div>
+      <div class="cap ${remC}"><div class="cl">Remote monitoring</div><div class="cv">${v.remote==="builtin"?"Built-in":v.remote==="modem"?"Modem required":"None"}</div></div>
+      <div class="cap ${platC}"><div class="cl">Platform access</div><div class="cv">${v.platform_ok?v.platform:"Not accessible"}</div></div>
+      <div class="cap ${humiC}"><div class="cl">Humidification</div><div class="cv">${v.humidification==="integrated"?"Integrated":"External required"}</div></div>
+      <div class="cap ${v.invasive?"cap-ok":"cap-neu"}"><div class="cl">Invasive capable</div><div class="cv">${v.invasive?"Yes":"NIV only"}</div></div>
+    </div>
+    <div class="mode-block">
+      <div class="mlabel">Recommended mode \u00b7 backup rate always set</div>
+      <div class="mode-row">
+        <span class="mchip rec">${m.rec}</span>
+        ${m.alts.map(a=>`<span class="mchip alt">${a}</span>`).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── Result ── */
+function showResult() {
+  if (!S.diag||!S.iface||!S.dep||!S.port||!S.avaps||!S.mpv) {
+    alert("Please answer all questions before viewing the recommendation."); return;
+  }
+  try { _buildResult(); }
+  catch(e) { document.getElementById("rcontent").innerHTML=`<div class="alert alert-warn"><strong>Error:</strong> ${e.message}</div>`; goStep("R"); }
+}
+
+function _buildResult() {
+  const { dep, iface } = S;
+  const highDep = dep==="highdep"||dep==="fullday";
+  const diagL = { copd:"COPD", nmd:"Neuromuscular disease", ohs:"Obesity hypoventilation", cwd:"Chest wall disorder", sci:"Spinal cord injury" };
+  const depL  = { nocturnal:"Nocturnal only", extended:"Extended / part-day (10\u201316h)", highdep:"High dependency (>16h)", fullday:"Near-continuous / 24h" };
+  const result = escalate();
+  let html = "";
+
+  html += `<div class="spills">
+    <span class="spill">${diagL[S.diag]}</span>
+    <span class="spill">${iface==="niv"?"NIV":"Invasive (trach)"}</span>
+    <span class="spill ${highDep?"hi":""}">${depL[dep]}</span>
+    <span class="spill">Backup rate: always</span>
+    <span class="spill">${S.avaps==="avaps_yes"?"AVAPs/iVAPS required":"Fixed pressure"}</span>
+    <span class="spill">${S.mpv==="mpv_yes"?"MPV required":"No MPV"}</span>
+    <span class="spill">${S.port==="port_yes"?"Portable required":"Mains OK"}</span>
+  </div>`;
+
+  if (highDep) {
+    html += `<div class="backup-box">
+      <div class="bb-title"><div class="bb-dot"></div>High dependency \u2014 dual provision required</div>
+      <div class="bb-body">This patient uses ventilation for more than 16 hours per day. The following must be arranged as standard:</div>
+      <div class="bb-items">
+        <div class="bb-item"><div class="bb-item-dot"></div><span><strong>Battery-capable primary device</strong> \u2014 internal or external battery to cover power failure and transport</span></div>
+        <div class="bb-item"><div class="bb-item-dot"></div><span><strong>Second (backup) ventilator</strong> \u2014 identical or compatible model kept at home for immediate use in case of device failure</span></div>
+        <div class="bb-item"><div class="bb-item-dot"></div><span><strong>Emergency protocol</strong> \u2014 documented plan for device failure, power outage, and clinical escalation</span></div>
+        <div class="bb-item"><div class="bb-item-dot"></div><span><strong>Utility provider notification</strong> \u2014 register patient as medically dependent with electricity supplier</span></div>
+      </div>
+    </div>`;
+  }
+
+  html += `<div class="esc-box"><strong>Decision pathway:</strong> ${result.reason}</div>`;
+
+  if (result.type === "single") {
+    html += `<div class="result-section"><div class="result-section-label">Recommended device</div>`;
+    html += renderCard(VENTS[result.device], "Recommended", "b-first", null);
+    html += `</div>`;
+  } else if (result.type === "equal-pair") {
+    html += `<div class="result-section"><div class="result-section-label">Equally suitable \u2014 choose based on clinical preference</div>`;
+    result.devices.forEach(d => { html += renderCard(VENTS[d.key], "Equal option", "b-eq", d.label); });
+    html += `</div>`;
+  } else if (result.type === "trache-highdep") {
+    html += `<div class="result-section"><div class="result-section-label">Recommended devices \u2014 departmental preference order</div>`;
+    result.devices.forEach(d => { html += renderCard(VENTS[d.key], d.pref, d.badge, null); });
+    html += `</div>`;
+  }
+
+  html += `<hr class="divider">`;
+
+  const allKeys = result.device ? [result.device] : (result.devices||[]).map(d=>d.key);
+  const anyNippy = allKeys.some(k => k.startsWith("nippy") && !VENTS[k].platform_ok);
+  if (anyNippy) html += `<div class="alert alert-warn"><strong>Remote monitoring \u2014 IG pending:</strong> Breas BreasConnect is not yet accessible. Patients on NIPPY devices cannot be remotely monitored until IG approval is confirmed. Consider Prisma or Lumis if remote monitoring is a clinical priority.</div>`;
+  if (allKeys.some(k=>VENTS[k].remote==="none")) html += `<div class="alert alert-warn"><strong>No remote monitoring:</strong> Philips EVO has no remote monitoring capability. Ensure adequate in-person follow-up is planned.</div>`;
+  if (iface === "inv") {
+    html += `<div class="alert alert-warn"><strong>Tracheostomy \u2014 active humidification essential:</strong> Heated wire circuit and active humidifier (e.g. Fisher &amp; Paykel MR850) required. Cold or passive circuits are not appropriate for long-term invasive home ventilation.</div>`;
+    html += `<div class="alert alert-warn"><strong>Invasive home ventilation:</strong> Requires tracheostomy care training, emergency escalation plan, community nursing liaison, and backup ventilator provision.</div>`;
+  }
+  if (S.mpv === "mpv_yes") html += `<div class="alert alert-info"><strong>Mouthpiece ventilation:</strong> Arrange MPV circuit and mouthpiece holder. PC or volume mode preferred to compensate for variable leak during MPV use.</div>`;
+  if (S.avaps === "avaps_yes") html += `<div class="alert alert-ok"><strong>AVAPs / iVAPS:</strong> Set target tidal volume (typically 8\u201310 ml/kg IBW). Review auto-titration data at follow-up. Ensure EPAP is sufficient to splint upper airway if concurrent OSA present.</div>`;
+  if (allKeys.some(k=>VENTS[k].phaseout)) html += `<div class="alert alert-warn"><strong>Philips EVO \u2014 phase out:</strong> EVO is being withdrawn from the formulary. Prescribe only where Luisa or NIPPY 4+ cannot meet clinical need. Discuss with team before issuing.</div>`;
+
+  document.getElementById("rcontent").innerHTML = html;
+  goStep("R");
+}
+
+/* ── Navigation ── */
+const STEPS = 6;
+function sel(step, el) {
+  el.closest(".tg,.og").querySelectorAll(".tc,.oc").forEach(e=>e.classList.remove("sel"));
+  el.classList.add("sel");
+  S[["","diag","iface","dep","port","avaps","mpv"][step]] = el.dataset.val;
+  document.getElementById("n"+step).disabled = false;
+}
+function goStep(n) {
+  document.querySelectorAll(".step").forEach(s=>s.classList.remove("vis"));
+  document.getElementById(n==="R"?"stepR":"step"+n).classList.add("vis");
+  updProg(n==="R"?7:n);
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function updProg(n) {
+  const pcts=[0,17,33,50,67,83,100];
+  for(let i=1;i<=STEPS;i++){
+    const el=document.getElementById("ps"+i); if(!el) continue;
+    el.className="ps";
+    if(i<n) el.classList.add("done");
+    else if(i===n) el.classList.add("active");
+  }
+  document.getElementById("plbl").textContent = n<=STEPS?`Step ${n} of ${STEPS}`:"Result";
+  document.getElementById("ppct").textContent = n<=STEPS?pcts[n]+"%":"";
+}
+function resetTool() {
+  Object.keys(S).forEach(k=>S[k]=null);
+  document.querySelectorAll(".oc,.tc").forEach(e=>e.classList.remove("sel"));
+  for(let i=1;i<=STEPS;i++){const b=document.getElementById("n"+i);if(b)b.disabled=true;}
+  goStep(1);
+}
+</script>
+</body>
+</html>
